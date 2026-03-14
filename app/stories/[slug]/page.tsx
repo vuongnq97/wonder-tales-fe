@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { getStoryBySlug } from '@/lib/api';
 import type { StoryDetail } from '@/lib/types';
 import StoryCard from '@/components/story-card';
+import AiReader from '@/components/ai-reader';
+import AiSummary from '@/components/ai-summary';
+import AiQuiz from '@/components/ai-quiz';
 import {
     ArrowLeft,
     BookOpen,
@@ -13,6 +16,7 @@ import {
     Tag,
     Share2,
     ChevronUp,
+    Wand2,
 } from 'lucide-react';
 
 export default function StoryDetailPage() {
@@ -22,6 +26,7 @@ export default function StoryDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [showScrollTop, setShowScrollTop] = useState(false);
+    const [showAiPanel, setShowAiPanel] = useState(false);
 
     useEffect(() => {
         async function fetchStory() {
@@ -188,6 +193,25 @@ export default function StoryDetailPage() {
                     className="story-content"
                     dangerouslySetInnerHTML={{ __html: story.content }}
                 />
+
+                {/* AI Tools Panel */}
+                <div className="mt-12 pt-8 border-t border-surface-200">
+                    <button
+                        onClick={() => setShowAiPanel(!showAiPanel)}
+                        className="flex items-center gap-2 mb-6 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-primary-600 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
+                    >
+                        <Wand2 className="w-4 h-4" />
+                        {showAiPanel ? 'Ẩn công cụ AI' : '🪄 Công cụ AI'}
+                    </button>
+
+                    {showAiPanel && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <AiReader content={story.content} title={story.title} />
+                            <AiSummary slug={slug} />
+                            <AiQuiz slug={slug} />
+                        </div>
+                    )}
+                </div>
 
                 {/* Tags */}
                 {story.tags.length > 0 && (

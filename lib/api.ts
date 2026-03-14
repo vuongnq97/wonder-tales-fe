@@ -30,3 +30,30 @@ export async function getFeaturedStories(limit = 6): Promise<Story[]> {
     const { data } = await api.get<Story[]>('/api/featured', { params: { limit } });
     return data;
 }
+
+// ─── AI APIs ────────────────────────────────────────────
+
+export interface AiSummaryResponse {
+    summary: string;
+    moral: string;
+}
+
+export interface QuizQuestion {
+    question: string;
+    options: string[];
+    correctAnswer: number;
+}
+
+export interface AiQuizResponse {
+    questions: QuizQuestion[];
+}
+
+export async function summarizeStory(slug: string): Promise<AiSummaryResponse> {
+    const { data } = await api.post<AiSummaryResponse>('/api/ai/summarize', { storySlug: slug });
+    return data;
+}
+
+export async function getQuiz(slug: string): Promise<AiQuizResponse> {
+    const { data } = await api.post<AiQuizResponse>('/api/ai/quiz', { storySlug: slug });
+    return data;
+}
