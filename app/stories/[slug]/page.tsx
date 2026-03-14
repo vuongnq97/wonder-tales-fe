@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getStoryBySlug } from '@/lib/api';
 import type { StoryDetail } from '@/lib/types';
-import StoryCard from '@/components/story-card';
 import AiReader from '@/components/ai-reader';
 import AiSummary from '@/components/ai-summary';
 import AiQuiz from '@/components/ai-quiz';
@@ -16,7 +15,8 @@ import {
     Tag,
     Share2,
     ChevronUp,
-    Wand2,
+    Sparkles,
+    X,
 } from 'lucide-react';
 
 export default function StoryDetailPage() {
@@ -49,6 +49,16 @@ export default function StoryDetailPage() {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    // Lock body scroll when AI panel is open
+    useEffect(() => {
+        if (showAiPanel) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [showAiPanel]);
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -194,25 +204,6 @@ export default function StoryDetailPage() {
                     dangerouslySetInnerHTML={{ __html: story.content }}
                 />
 
-                {/* AI Tools Panel */}
-                <div className="mt-12 pt-8 border-t border-surface-200">
-                    <button
-                        onClick={() => setShowAiPanel(!showAiPanel)}
-                        className="flex items-center gap-2 mb-6 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-primary-600 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
-                    >
-                        <Wand2 className="w-4 h-4" />
-                        {showAiPanel ? 'Ẩn công cụ AI' : '🪄 Công cụ AI'}
-                    </button>
-
-                    {showAiPanel && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                            <AiReader content={story.content} title={story.title} />
-                            <AiSummary slug={slug} />
-                            <AiQuiz slug={slug} />
-                        </div>
-                    )}
-                </div>
-
                 {/* Tags */}
                 {story.tags.length > 0 && (
                     <div className="mt-12 pt-8 border-t border-surface-200">
@@ -274,6 +265,74 @@ export default function StoryDetailPage() {
                 </section>
             )}
 
+            {/* ───── Fixed Floating AI Button ───── */}
+            <button
+                onClick={() => setShowAiPanel(true)}
+                className="fixed bottom-8 right-24 z-40 flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-violet-600 via-purple-600 to-primary-600 text-white font-semibold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 group"
+                style={{ animation: 'pulse-glow 2s ease-in-out infinite' }}
+            >
+                <Sparkles className="w-4.5 h-4.5 group-hover:rotate-12 transition-transform" />
+                <span>Trợ lý AI</span>
+            </button>
+
+            {/* ───── AI Popup Modal ───── */}
+            {showAiPanel && (
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-dark-900/40 backdrop-blur-sm"
+                        onClick={() => setShowAiPanel(false)}
+                        style={{ animation: 'fadeIn 0.2s ease-out' }}
+                    />
+
+                    {/* Modal */}
+                    <div
+                        className="relative w-full max-w-lg mx-4 mb-0 sm:mb-0 bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-surface-200/50 max-h-[85vh] flex flex-col"
+                        style={{ animation: 'slideUp 0.3s ease-out' }}
+                    >
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-100">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-primary-500 flex items-center justify-center shadow-sm">
+                                    <Sparkles className="w-4.5 h-4.5 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-dark-900">
+                                        Trợ lý AI
+                                    </h2>
+                                    <p className="text-xs text-dark-400">
+                                        Khám phá truyện theo cách mới
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowAiPanel(false)}
+                                className="w-8 h-8 rounded-full bg-surface-100 hover:bg-surface-200 flex items-center justify-center transition-colors"
+                            >
+                                <X className="w-4 h-4 text-dark-500" />
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+                            <AiReader
+                                content={story.content}
+                                title={story.title}
+                            />
+                            <AiSummary slug={slug} />
+                            <AiQuiz slug={slug} />
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-6 py-3 border-t border-surface-100 bg-surface-50/50 rounded-b-3xl">
+                            <p className="text-xs text-dark-300 text-center">
+                                Powered by Google Gemini ✨
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Scroll to top */}
             {showScrollTop && (
                 <button
@@ -283,6 +342,32 @@ export default function StoryDetailPage() {
                     <ChevronUp className="w-5 h-5" />
                 </button>
             )}
+
+            {/* Animations */}
+            <style jsx>{`
+                @keyframes slideUp {
+                    from {
+                        transform: translateY(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes pulse-glow {
+                    0%, 100% {
+                        box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+                    }
+                    50% {
+                        box-shadow: 0 4px 25px rgba(124, 58, 237, 0.5);
+                    }
+                }
+            `}</style>
         </div>
     );
 }
