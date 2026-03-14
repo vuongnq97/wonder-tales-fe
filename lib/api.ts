@@ -49,11 +49,11 @@ export interface AiQuizResponse {
 }
 
 export async function summarizeStory(slug: string): Promise<AiSummaryResponse> {
-    const { data } = await api.post<AiSummaryResponse>('/api/ai/summarize', { storySlug: slug });
+    const { data } = await api.post<AiSummaryResponse>('/api/ai/summarize', { storySlug: slug }, { timeout: 60000 });
     return data;
 }
 
 export async function getQuiz(slug: string): Promise<AiQuizResponse> {
-    const { data } = await api.post<AiQuizResponse>('/api/ai/quiz', { storySlug: slug });
+    const { data } = await api.post<AiQuizResponse>('/api/ai/quiz', { storySlug: slug }, { timeout: 60000 });
     return data;
 }
